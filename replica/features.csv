@@ -1,0 +1,30 @@
+feature,area,priority,original,clone,notes
+Import slip images (multi-select),import,must,yes,no,web: file picker; original scans gallery
+Detect that an image is a bank slip (QR),import,must,yes,no,slip QR = bank + trans ref
+Read amount from slip (OCR),import,must,yes,no,Thai + English OCR in browser
+Read date and time from slip,import,must,yes,no,Thai and Buddhist-era dates
+Read receiver name from slip,import,must,yes,no,
+Review and confirm detected entries,import,must,inferred,no,
+Skip duplicate slips,import,must,inferred,no,dedupe on slip ref
+Add expense or income by hand,entries,must,inferred,no,
+Edit and delete entries,entries,must,inferred,no,
+Categories with defaults,categories,must,inferred,no,
+Today summary on home,summary,must,yes,no,news: daily summary
+Monthly summary by category,summary,must,yes,no,news: monthly summary
+Store everything on device,data,must,inferred,no,IndexedDB
+Per-bank layout support for 16 Thai bank apps,import,should,yes,no,add banks one at a time
+Auto-categorise by receiver (rules),categories,should,inferred,no,
+Detect income vs expense from slip,import,should,inferred,no,
+Daily bar chart for the month,summary,should,inferred,no,
+Export CSV,data,should,inferred,no,
+Backup and restore JSON,data,should,inferred,no,
+Installable PWA with share target,platform,should,n/a,no,share slips straight from the bank app
+Custom categories (name colour icon),categories,could,inferred,no,
+Budgets per category,summary,could,unknown,no,
+Search and filter entries,entries,could,inferred,no,
+Dark mode,platform,could,unknown,no,
+Automatic background gallery scan,import,skip,yes,no,not possible on the web
+Slip verification with bank APIs,import,skip,unknown,no,needs bank agreements
+Silver/Gold subscription,billing,skip,yes,no,out of agreed scope
+User accounts and cloud sync,data,skip,unknown,no,out of agreed scope
+Name mascot and art,brand,skip,yes,no,owned by KBTG
