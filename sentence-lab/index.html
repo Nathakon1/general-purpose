@@ -1,0 +1,753 @@
+<title>Sentence Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a single working "desk" — sources on top, a ruled writing line, a tray of colour-coded blocks below. */
+:root {
+  --bg: #f3f5f8;
+  --surface: #ffffff;
+  --ink: #18202e;
+  --muted: #5b6577;
+  --line: #d5dbe5;
+  --accent: #1f5fd1;
+  --accent-ink: #ffffff;
+  --good: #1b7f4b;
+  --good-bg: #e6f4ec;
+  --bad: #c03a2b;
+  --bad-bg: #fbeceb;
+  --warn-bg: #fff5e0;
+
+  /* role colours: border / fill */
+  --r-main: #2f62c9;   --r-main-bg: #e7eefc;
+  --r-sub: #138471;    --r-sub-bg: #e1f4ef;
+  --r-link: #b5650d;   --r-link-bg: #fdf0dc;
+  --r-phrase: #7a5bc4; --r-phrase-bg: #efe9fb;
+  --r-rel: #138471;    --r-rel-bg: #e1f4ef;
+  --r-part: #c2416b;   --r-part-bg: #fbe8ef;
+  --r-noun: #7a5bc4;   --r-noun-bg: #efe9fb;
+  --r-punct: #5b6577;  --r-punct-bg: #eef1f5;
+
+  --f-display: "Bricolage Grotesque", "IBM Plex Sans Thai", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans Thai", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #11151c; --surface: #19202a; --ink: #e6eaf1; --muted: #9aa5b6; --line: #2c3544;
+    --accent: #6b9bff; --accent-ink: #0d1422;
+    --good: #5fcf92; --good-bg: #13291e; --bad: #ff8577; --bad-bg: #321a18; --warn-bg: #2e2513;
+    --r-main: #7ea4f5; --r-main-bg: #1a2741;
+    --r-sub: #4fc9b2; --r-sub-bg: #12302b;
+    --r-link: #f0a64d; --r-link-bg: #33250f;
+    --r-phrase: #b39cf0; --r-phrase-bg: #261f3d;
+    --r-rel: #4fc9b2; --r-rel-bg: #12302b;
+    --r-part: #f27fa4; --r-part-bg: #3a1a26;
+    --r-noun: #b39cf0; --r-noun-bg: #261f3d;
+    --r-punct: #9aa5b6; --r-punct-bg: #232b37;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #11151c; --surface: #19202a; --ink: #e6eaf1; --muted: #9aa5b6; --line: #2c3544;
+  --accent: #6b9bff; --accent-ink: #0d1422;
+  --good: #5fcf92; --good-bg: #13291e; --bad: #ff8577; --bad-bg: #321a18; --warn-bg: #2e2513;
+  --r-main: #7ea4f5; --r-main-bg: #1a2741;
+  --r-sub: #4fc9b2; --r-sub-bg: #12302b;
+  --r-link: #f0a64d; --r-link-bg: #33250f;
+  --r-phrase: #b39cf0; --r-phrase-bg: #261f3d;
+  --r-rel: #4fc9b2; --r-rel-bg: #12302b;
+  --r-part: #f27fa4; --r-part-bg: #3a1a26;
+  --r-noun: #b39cf0; --r-noun-bg: #261f3d;
+  --r-punct: #9aa5b6; --r-punct-bg: #232b37;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 16px; line-height: 1.6;
+}
+.wrap {
+  max-width: 880px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--f-display); font-weight: 700; font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.1; margin: 0; letter-spacing: -0.01em; }
+.tagline { margin: 4px 0 0; color: var(--muted); font-size: .95rem; }
+.level { font-family: var(--f-mono); font-size: .75rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.tab {
+  font: inherit; font-weight: 600; cursor: pointer; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  padding: 10px 16px; border-radius: 10px; display: flex; flex-direction: column; align-items: flex-start; gap: 0; text-align: left; flex: 1 1 240px;
+}
+.tab small { font-weight: 400; color: var(--muted); font-size: .85rem; }
+.tab[aria-selected="true"] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.tab:focus-visible, button:focus-visible, .chip:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+.strip { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.strip .label { font-size: .85rem; color: var(--muted); margin-right: 4px; }
+.dot {
+  width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  font-family: var(--f-mono); font-size: .85rem; cursor: pointer; display: grid; place-items: center; font-variant-numeric: tabular-nums;
+}
+.dot.done { background: var(--good-bg); border-color: var(--good); color: var(--good); }
+.dot.revealed { background: var(--warn-bg); border-color: var(--r-link); color: var(--r-link); }
+.dot.current { border-color: var(--accent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.progress { margin-left: auto; font-size: .85rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.desk { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: clamp(16px, 3vw, 28px); display: flex; flex-direction: column; gap: 22px; }
+.topic { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: baseline; }
+.topic h2 { margin: 0; font-family: var(--f-display); font-size: 1.35rem; font-weight: 700; text-wrap: balance; }
+.topic .task { color: var(--muted); font-size: .95rem; }
+
+.sources { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.sources li { font-family: var(--f-display); font-weight: 500; font-size: 1.15rem; display: flex; gap: 10px; align-items: baseline; }
+.sources li::before { content: attr(data-n); font-family: var(--f-mono); font-size: .75rem; color: var(--muted); min-width: 1.2em; }
+.target { font-size: .92rem; background: var(--bg); border-radius: 8px; padding: 8px 12px; color: var(--ink); }
+.target b { font-weight: 600; }
+
+.sec-label { font-family: var(--f-mono); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 8px; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+
+.answer {
+  min-height: 64px; padding: 10px 4px 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  border-bottom: 2px dashed var(--line);
+}
+.answer.empty::before { content: "แตะบล็อกด้านล่างเพื่อเรียงประโยคตรงนี้"; color: var(--muted); font-size: .92rem; padding-left: 4px; }
+.answer.correct { border-bottom: 2px solid var(--good); }
+.answer.wrong { border-bottom: 2px solid var(--bad); }
+.bank { display: flex; flex-wrap: wrap; gap: 8px; min-height: 48px; }
+.bank.empty::before { content: "ใช้บล็อกครบแล้ว"; color: var(--muted); font-size: .9rem; }
+
+.chip {
+  font-family: var(--f-display); font-weight: 500; font-size: 1.05rem; line-height: 1.3;
+  border: 1.5px solid var(--r-c, var(--line)); background: var(--r-bg, var(--bg)); color: var(--ink);
+  padding: 7px 12px; border-radius: 8px; cursor: pointer; text-align: left;
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.chip:hover { transform: translateY(-1px); box-shadow: 0 2px 0 var(--r-c, var(--line)); }
+.chip.punct { min-width: 38px; text-align: center; font-weight: 700; }
+.chip.off { --r-c: var(--line); --r-bg: var(--bg); }
+.chip.bad-tile { outline: 2px solid var(--bad); outline-offset: 2px; }
+.chip[disabled] { cursor: default; transform: none; box-shadow: none; }
+
+.r-main  { --r-c: var(--r-main);  --r-bg: var(--r-main-bg); }
+.r-sub   { --r-c: var(--r-sub);   --r-bg: var(--r-sub-bg); }
+.r-link  { --r-c: var(--r-link);  --r-bg: var(--r-link-bg); }
+.r-phrase{ --r-c: var(--r-phrase);--r-bg: var(--r-phrase-bg); }
+.r-rel   { --r-c: var(--r-rel);   --r-bg: var(--r-rel-bg); }
+.r-part  { --r-c: var(--r-part);  --r-bg: var(--r-part-bg); }
+.r-noun  { --r-c: var(--r-noun);  --r-bg: var(--r-noun-bg); }
+.r-punct { --r-c: var(--r-punct); --r-bg: var(--r-punct-bg); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .82rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; border: 1.5px solid var(--r-c); background: var(--r-bg); display: inline-block; }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { font: inherit; font-weight: 500; font-size: .95rem; cursor: pointer; padding: 9px 14px; border-radius: 9px; border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn[disabled] { opacity: .45; cursor: default; }
+.spacer { flex: 1; }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: .85rem; color: var(--muted); cursor: pointer; text-transform: none; letter-spacing: 0; font-family: var(--f-body); }
+
+.feedback { border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; font-size: .97rem; }
+.feedback.good { background: var(--good-bg); }
+.feedback.bad { background: var(--bad-bg); }
+.feedback.info { background: var(--warn-bg); }
+.feedback h3 { margin: 0; font-size: 1.02rem; font-weight: 600; }
+.feedback.good h3 { color: var(--good); }
+.feedback.bad h3 { color: var(--bad); }
+.feedback p { margin: 0; max-width: 68ch; }
+.feedback ul { margin: 0; padding-left: 1.2em; }
+.final { font-family: var(--f-display); font-size: 1.2rem; font-weight: 500; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.breakdown { display: flex; flex-wrap: wrap; gap: 6px; }
+.part { display: flex; flex-direction: column; gap: 2px; border: 1.5px solid var(--r-c); background: var(--r-bg); border-radius: 8px; padding: 5px 9px; }
+.part b { font-family: var(--f-display); font-weight: 500; font-size: .98rem; }
+.part small { font-family: var(--f-mono); font-size: .66rem; letter-spacing: .06em; text-transform: uppercase; color: var(--r-c); }
+.alt { font-family: var(--f-display); }
+.speak { font: inherit; font-size: .85rem; cursor: pointer; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 3px 10px; }
+
+details.ref { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 4px 18px; }
+details.ref summary { cursor: pointer; font-weight: 600; padding: 12px 0; }
+.table-wrap { overflow-x: auto; padding-bottom: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: .92rem; min-width: 520px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-family: var(--f-mono); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 500; }
+td.en { font-family: var(--f-display); font-weight: 500; white-space: nowrap; }
+td.ex { font-family: var(--f-display); }
+
+@media (prefers-reduced-motion: reduce) { .chip { transition: none; } .chip:hover { transform: none; } }
+@media (max-width: 520px) {
+  .chip { font-size: 1rem; padding: 7px 10px; }
+  .sources li { font-size: 1.05rem; }
+  .progress { margin-left: 0; width: 100%; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Sentence Lab</h1>
+      <p class="tagline">ฝึกต่อประโยคภาษาอังกฤษให้ยาวขึ้นและเป็นธรรมชาติขึ้น ด้วยการเรียงบล็อก</p>
+    </div>
+    <span class="level">Level B2–C1</span>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" id="tab-combine" data-mod="combine">หมวด 1 · รวมประโยค<small>Sentence Combining · คำเชื่อมระดับสูง</small></button>
+    <button class="tab" role="tab" id="tab-clause" data-mod="clause">หมวด 2 · อนุประโยคซ้อน<small>Complex Clauses · relative, noun, participle</small></button>
+  </div>
+
+  <div class="strip" id="strip"></div>
+
+  <section class="desk" aria-live="polite">
+    <div class="topic"><h2 id="topic"></h2><span class="task" id="task"></span></div>
+    <ol class="sources" id="sources"></ol>
+    <div class="target" id="target"></div>
+
+    <div>
+      <p class="sec-label"><span>ประโยคของคุณ</span><span id="speakWrap"></span></p>
+      <div class="answer empty" id="answer"></div>
+    </div>
+
+    <div>
+      <p class="sec-label"><span>บล็อกที่ใช้ได้ (มีตัวหลอกปนอยู่)</span>
+        <label class="toggle"><input type="checkbox" id="colorToggle" checked> สีบอกหน้าที่</label>
+      </p>
+      <div class="bank" id="bank"></div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="controls">
+      <button class="btn" id="btnClear">ล้าง</button>
+      <button class="btn" id="btnHint">คำใบ้</button>
+      <button class="btn" id="btnReveal">ดูเฉลย</button>
+      <span class="spacer"></span>
+      <button class="btn primary" id="btnCheck">ตรวจคำตอบ</button>
+      <button class="btn primary" id="btnNext" hidden>ข้อต่อไป →</button>
+    </div>
+
+    <div id="feedback" hidden></div>
+  </section>
+
+  <details class="ref" id="ref"></details>
+</div>
+
+<script>
+const ROLE = {
+  main:   "ประโยคหลัก",
+  sub:    "อนุประโยค",
+  link:   "คำเชื่อม",
+  phrase: "นามวลี",
+  rel:    "Relative clause",
+  part:   "Participle clause",
+  noun:   "Noun clause",
+  punct:  "เครื่องหมาย"
+};
+const LEGEND = {
+  combine: ["main", "link", "sub", "phrase", "punct"],
+  clause:  ["main", "rel", "noun", "part", "link", "punct"]
+};
+
+const DATA = {
+  combine: [
+    { id: "c1", topic: "Although", task: "รวมเป็นประโยคเดียว",
+      src: ["The meeting was long.", "Nobody wanted to leave."],
+      target: "ใช้คำเชื่อมแสดง <b>ความขัดแย้ง</b> (ถึงแม้ว่า…ก็ยัง…)",
+      tiles: [["although","link"],["the meeting was long","sub"],[",","punct"],["nobody wanted to leave","main"],["because","link"],["despite","link"]],
+      answers: ["although the meeting was long, nobody wanted to leave", "nobody wanted to leave although the meeting was long"],
+      mistakes: [
+        { has: "because", msg: "because แปลว่า 'เพราะ' แต่การประชุมที่ยาวไม่ใช่เหตุผลที่ทำให้ไม่มีใครอยากกลับ ความหมายจึงขัดกัน ต้องใช้คำที่แสดงความขัดแย้ง" },
+        { has: "despite", msg: "despite ต้องตามด้วยคำนามหรือ V-ing เช่น despite the long meeting จะตามด้วยประโยคเต็ม (ประธาน + กริยา) ไม่ได้" }
+      ],
+      explain: "Although + ประโยค แปลว่า 'ถึงแม้ว่า' ถ้าขึ้นต้นประโยคด้วย although ต้องใส่จุลภาค (,) ก่อนประโยคหลัก แต่ถ้าวางไว้กลางประโยคไม่ต้องใส่",
+      th: "ถึงแม้การประชุมจะยาว แต่ก็ไม่มีใครอยากกลับ" },
+
+    { id: "c2", topic: "Despite vs Although", task: "รวมเป็นประโยคเดียว (ทำได้ 2 ทาง)",
+      src: ["It rained heavily.", "The match went ahead."],
+      target: "ลองใช้ <b>despite</b> กับนามวลี หรือ <b>although</b> กับประโยคเต็ม",
+      tiles: [["despite","link"],["the heavy rain","phrase"],[",","punct"],["the match went ahead","main"],["although","link"],["it rained heavily","sub"]],
+      answers: ["despite the heavy rain, the match went ahead", "the match went ahead despite the heavy rain", "although it rained heavily, the match went ahead", "the match went ahead although it rained heavily"],
+      mistakes: [
+        { has: "despite it rained", msg: "despite ตามด้วยประโยคเต็มไม่ได้ ถ้าจะใช้ despite ให้ตามด้วยนามวลี the heavy rain" },
+        { has: "although the heavy rain", msg: "although ต้องตามด้วยประโยคที่มีประธานและกริยา (it rained heavily) ส่วน the heavy rain เป็นแค่นามวลี" }
+      ],
+      explain: "despite / in spite of + คำนาม หรือ V-ing ส่วน although / even though + ประโยค ความหมายเหมือนกัน ต่างกันที่โครงสร้างที่ตามมา",
+      th: "แม้ฝนจะตกหนัก แต่การแข่งขันก็ยังดำเนินต่อไป" },
+
+    { id: "c3", topic: "Not only … but also", task: "รวมเป็นประโยคเดียว",
+      src: ["He speaks Japanese.", "He also speaks Korean."],
+      target: "เน้นว่าทำได้ <b>ทั้งสองอย่าง</b> แบบน่าประทับใจ",
+      tiles: [["he speaks","main"],["not only","link"],["Japanese","phrase"],["but also","link"],["Korean","phrase"],["and also","link"]],
+      answers: ["he speaks not only Japanese but also Korean"],
+      mistakes: [{ has: "and also", msg: "not only ต้องจับคู่กับ but also เสมอ ใช้ and also แทนไม่ได้" }],
+      explain: "not only A but also B ใช้เน้นว่า 'ไม่เพียงแต่ A แต่ยัง B ด้วย' โดย A และ B ควรเป็นชนิดคำเดียวกัน (ในข้อนี้เป็นชื่อภาษาทั้งคู่)",
+      th: "เขาพูดได้ไม่เพียงแค่ภาษาญี่ปุ่น แต่ยังพูดภาษาเกาหลีได้ด้วย" },
+
+    { id: "c4", topic: "Provided that", task: "รวมเป็นประโยคเดียว",
+      src: ["You can borrow my car.", "You must return it by Friday."],
+      target: "บอก <b>เงื่อนไข</b> (ได้ ก็ต่อเมื่อ…)",
+      tiles: [["you can borrow my car","main"],["provided that","link"],["you return it by Friday","sub"],["unless","link"],[",","punct"]],
+      answers: ["you can borrow my car provided that you return it by Friday", "provided that you return it by Friday, you can borrow my car"],
+      mistakes: [{ has: "unless", msg: "unless แปลว่า 'ถ้าไม่' ความหมายจะกลายเป็น 'ยืมรถได้ถ้าคุณไม่คืนภายในวันศุกร์' ซึ่งตรงข้ามกับที่ต้องการ" }],
+      explain: "provided that (หรือ providing / as long as) แปลว่า 'โดยมีเงื่อนไขว่า' สังเกตว่าหลังคำนี้ใช้ปัจจุบันกาลธรรมดา (you return) ไม่ต้องใส่ must หรือ will",
+      th: "คุณยืมรถฉันได้ โดยมีเงื่อนไขว่าต้องคืนภายในวันศุกร์" },
+
+    { id: "c5", topic: "Whereas", task: "รวมเป็นประโยคเดียว",
+      src: ["My brother loves crowded cities.", "I prefer quiet villages."],
+      target: "<b>เปรียบเทียบ</b> สองคนที่ชอบต่างกัน",
+      tiles: [["my brother loves crowded cities","main"],["whereas","link"],["I prefer quiet villages","sub"],[",","punct"],["so","link"]],
+      answers: ["my brother loves crowded cities, whereas I prefer quiet villages", "my brother loves crowded cities whereas I prefer quiet villages", "whereas my brother loves crowded cities, I prefer quiet villages"],
+      mistakes: [{ has: "so", msg: "so แสดงผลลัพธ์ ('จึง') แต่ความชอบของพี่ชายไม่ได้เป็นสาเหตุให้คุณชอบหมู่บ้านเงียบ ๆ" }],
+      explain: "whereas แปลว่า 'ในขณะที่' ใช้เทียบความต่างระหว่างสองสิ่ง ให้ความรู้สึกทางการกว่า while เล็กน้อย",
+      th: "พี่ชายฉันชอบเมืองที่คนพลุกพล่าน ในขณะที่ฉันชอบหมู่บ้านที่เงียบสงบ" },
+
+    { id: "c6", topic: "Given that", task: "รวมเป็นประโยคเดียว",
+      src: ["Prices have risen sharply.", "Many families are cutting back on spending."],
+      target: "บอก <b>เหตุผลที่ทุกคนรู้กันอยู่แล้ว</b>",
+      tiles: [["given that","link"],["prices have risen sharply","sub"],[",","punct"],["many families are cutting back on spending","main"],["even though","link"]],
+      answers: ["given that prices have risen sharply, many families are cutting back on spending", "many families are cutting back on spending given that prices have risen sharply"],
+      mistakes: [{ has: "even though", msg: "even though แสดงความขัดแย้ง แต่ราคาที่สูงขึ้นเป็นเหตุผลให้ประหยัด ไม่ได้ขัดกัน" }],
+      explain: "given that แปลว่า 'เมื่อพิจารณาว่า / ในเมื่อ' ใช้แทน because ได้เมื่อเหตุผลเป็นข้อเท็จจริงที่ผู้ฟังรู้อยู่แล้ว เจอบ่อยในภาษาเขียนและการประชุม",
+      th: "ในเมื่อราคาสินค้าพุ่งขึ้นมาก หลายครอบครัวจึงลดการใช้จ่าย" },
+
+    { id: "c7", topic: "So as to vs So that", task: "รวมเป็นประโยคเดียว (ทำได้ 2 ทาง)",
+      src: ["She saved money for two years.", "She wanted to study abroad."],
+      target: "บอก <b>จุดประสงค์</b> (เพื่อที่จะ…)",
+      tiles: [["she saved money for two years","main"],["so as to","link"],["study abroad","phrase"],["so that","link"],["she could study abroad","sub"],["in spite of","link"]],
+      answers: ["she saved money for two years so as to study abroad", "she saved money for two years so that she could study abroad"],
+      mistakes: [
+        { has: "so as to she", msg: "so as to ตามด้วยกริยาช่อง 1 (study) ไม่ต้องมีประธาน" },
+        { has: "so that study", msg: "so that ต้องตามด้วยประโยคเต็ม เช่น she could study abroad" },
+        { has: "in spite of", msg: "in spite of แสดงความขัดแย้ง ไม่ได้บอกจุดประสงค์" }
+      ],
+      explain: "so as to / in order to + V1 ใช้เมื่อประธานเดียวกัน ส่วน so that + ประโยค (มักมี can/could) ใช้ได้ทั้งประธานเดียวกันและต่างกัน",
+      th: "เธอเก็บเงินสองปีเพื่อจะไปเรียนต่อต่างประเทศ" },
+
+    { id: "c8", topic: "รวม 3 ประโยค", task: "รวมสามประโยคเป็นประโยคเดียว",
+      src: ["The hotel was expensive.", "The rooms were small.", "We had a great time."],
+      target: "ใช้ <b>even though</b> คุมสองข้อเสีย แล้วตามด้วยผลที่ดี",
+      tiles: [["even though","link"],["the hotel was expensive","sub"],["and","link"],["the rooms were small","sub"],[",","punct"],["we had a great time","main"],["so","link"]],
+      answers: [
+        "even though the hotel was expensive and the rooms were small, we had a great time",
+        "even though the rooms were small and the hotel was expensive, we had a great time",
+        "we had a great time even though the hotel was expensive and the rooms were small",
+        "we had a great time even though the rooms were small and the hotel was expensive"
+      ],
+      mistakes: [{ has: "so", msg: "so แปลว่า 'จึง' แต่โรงแรมแพงและห้องเล็กไม่ได้ทำให้เที่ยวสนุก ความหมายขัดกัน" }],
+      explain: "even though หนักแน่นกว่า although หนึ่งระดับ และหนึ่งคำเชื่อมคุมได้หลายประโยคที่เชื่อมด้วย and",
+      th: "ถึงแม้โรงแรมจะแพงและห้องจะเล็ก แต่เราก็เที่ยวกันสนุกมาก" },
+
+    { id: "c9", topic: "Because vs Due to", task: "รวมเป็นประโยคเดียว",
+      src: ["The project was delayed.", "The client changed the requirements twice."],
+      target: "บอก <b>สาเหตุ</b> ด้วยประโยคเต็ม",
+      tiles: [["the project was delayed","main"],["because","link"],["the client changed the requirements twice","sub"],["due to","link"],[",","punct"]],
+      answers: ["the project was delayed because the client changed the requirements twice", "because the client changed the requirements twice, the project was delayed"],
+      mistakes: [{ has: "due to the client", msg: "due to ตามด้วยคำนามเท่านั้น เช่น due to changes in the requirements ตามด้วยประโยคเต็มไม่ได้" }],
+      explain: "because + ประโยค ส่วน due to / because of + คำนาม เป็นคู่ที่คนไทยสลับกันบ่อยมาก",
+      th: "โปรเจกต์ล่าช้าเพราะลูกค้าเปลี่ยนความต้องการถึงสองครั้ง" },
+
+    { id: "c10", topic: "Unless", task: "รวมเป็นประโยคเดียว",
+      src: ["If you don't leave now, …", "You will miss the last train."],
+      target: "ใช้คำเดียวแทน <b>if … not</b>",
+      tiles: [["unless","link"],["you leave now","sub"],[",","punct"],["you will miss the last train","main"],["provided that","link"]],
+      answers: ["unless you leave now, you will miss the last train", "you will miss the last train unless you leave now"],
+      mistakes: [{ has: "provided that", msg: "provided that แปลว่า 'ถ้า (มีเงื่อนไขว่า)' ความหมายจะกลายเป็น 'ถ้าออกตอนนี้จะตกรถไฟ' ซึ่งกลับด้าน" }],
+      explain: "unless = if … not ข้อควรระวังคือห้ามใส่ not ซ้ำหลัง unless (ห้ามพูด unless you don't leave)",
+      th: "ถ้าไม่ออกตอนนี้ คุณจะตกรถไฟเที่ยวสุดท้าย" }
+  ],
+
+  clause: [
+    { id: "k1", topic: "Relative clause · who", task: "รวมเป็นประโยคเดียว",
+      src: ["The colleague has just been promoted.", "She helped me."],
+      target: "ขยาย <b>the colleague</b> ด้วย relative clause",
+      tiles: [["the colleague","main"],["who helped me","rel"],["has just been promoted","main"],["which helped me","rel"]],
+      answers: ["the colleague who helped me has just been promoted"],
+      mistakes: [{ has: "which helped", msg: "which ใช้กับสิ่งของหรือสัตว์ ถ้าเป็นคนใช้ who (หรือ that)" }],
+      explain: "relative clause ต้องวางติดหลังคำนามที่มันขยายทันที ประโยคหลักจึงถูกแทรกกลาง: The colleague [who helped me] has just been promoted.",
+      th: "เพื่อนร่วมงานที่เคยช่วยฉันเพิ่งได้เลื่อนตำแหน่ง" },
+
+    { id: "k2", topic: "Non-defining clause", task: "รวมเป็นประโยคเดียว",
+      src: ["My father lives in Chiang Mai.", "He is a retired teacher."],
+      target: "เพิ่ม <b>ข้อมูลเสริม</b> โดยคั่นด้วยจุลภาค",
+      tiles: [["my father","main"],[",","punct"],["who is a retired teacher","rel"],[",","punct"],["lives in Chiang Mai","main"],["that is a retired teacher","rel"]],
+      answers: ["my father, who is a retired teacher, lives in Chiang Mai"],
+      mistakes: [{ has: "that is a retired", msg: "ถ้าเป็นข้อมูลเสริมที่คั่นด้วยจุลภาค (non-defining) ใช้ that ไม่ได้ ต้องใช้ who หรือ which" }],
+      explain: "my father มีคนเดียวอยู่แล้ว ส่วนที่ขยายจึงเป็นแค่ข้อมูลเสริม ต้องคั่นด้วยจุลภาคทั้งหน้าและหลัง ถ้าตัดส่วนนั้นออก ประโยคยังสมบูรณ์",
+      th: "พ่อของฉันซึ่งเป็นครูเกษียณ อาศัยอยู่ที่เชียงใหม่" },
+
+    { id: "k3", topic: "Noun clause · what", task: "เรียงเป็นประโยคเดียว",
+      src: ["Something surprised me most.", "It was his honesty."],
+      target: "ใช้ <b>what</b> ('สิ่งที่') ทำหน้าที่เป็นประธาน",
+      tiles: [["what surprised me most","noun"],["was","main"],["his honesty","main"],["that surprised me most","noun"]],
+      answers: ["what surprised me most was his honesty", "his honesty was what surprised me most"],
+      mistakes: [{ has: "that surprised me most was", msg: "that ไม่ได้แปลว่า 'สิ่งที่' ถ้าต้องการให้ทั้งก้อนเป็นประธาน ต้องใช้ what" }],
+      explain: "what + ประโยค = 'สิ่งที่…' ทั้งก้อนทำหน้าที่เหมือนคำนามหนึ่งคำ จึงเป็นประธานได้ ใช้เน้นจุดสำคัญได้ดีมากเวลาพูด",
+      th: "สิ่งที่ทำให้ฉันประหลาดใจที่สุดคือความซื่อสัตย์ของเขา" },
+
+    { id: "k4", topic: "Participle · Having + V3", task: "รวมเป็นประโยคเดียว",
+      src: ["She finished the report.", "Then she went home."],
+      target: "ย่อประโยคแรกให้เป็น <b>participle clause</b> ที่บอกว่าทำเสร็จก่อน",
+      tiles: [["having finished the report","part"],[",","punct"],["she went home","main"],["have finished the report","part"],["to finish the report","part"]],
+      answers: ["having finished the report, she went home"],
+      mistakes: [
+        { has: "have finished the report,", msg: "ต้นประโยคแบบนี้ต้องใช้ having (V-ing) ไม่ใช่ have" },
+        { has: "to finish the report", msg: "to finish แปลว่า 'เพื่อจะทำให้เสร็จ' เป็นจุดประสงค์ ไม่ได้บอกว่าทำเสร็จไปแล้ว" }
+      ],
+      explain: "Having + V3 บอกว่าเหตุการณ์แรกเสร็จก่อนเหตุการณ์ที่สอง ประธานของทั้งสองส่วนต้องเป็นคนเดียวกัน (she)",
+      th: "พอทำรายงานเสร็จ เธอก็กลับบ้าน" },
+
+    { id: "k5", topic: "Reduced relative · V3", task: "รวมเป็นประโยคเดียว",
+      src: ["The data was collected last year.", "It shows a clear decline."],
+      target: "ย่อ <b>which was collected</b> ให้สั้นลง",
+      tiles: [["the data","main"],["collected last year","part"],["shows a clear decline","main"],["collecting last year","part"],["which collected last year","rel"]],
+      answers: ["the data collected last year shows a clear decline"],
+      mistakes: [
+        { has: "collecting", msg: "collecting มีความหมายเชิงกระทำ (ข้อมูลเป็นผู้เก็บ) แต่ข้อมูลถูกเก็บ ต้องใช้ V3 (collected)" },
+        { has: "which collected", msg: "which collected แปลว่า 'ข้อมูลไปเก็บอะไรบางอย่าง' ถ้าจะใช้ which ต้องเป็น which was collected" }
+      ],
+      explain: "the data which was collected last year → ตัด which was ออกได้ เหลือ the data collected last year เป็นรูปที่ใช้บ่อยในรายงานและการนำเสนอ",
+      th: "ข้อมูลที่เก็บเมื่อปีที่แล้วแสดงให้เห็นการลดลงอย่างชัดเจน" },
+
+    { id: "k6", topic: "Participle · Not + V-ing", task: "รวมเป็นประโยคเดียว",
+      src: ["I didn't know anyone at the party.", "So I left early."],
+      target: "ย่อ <b>เหตุผล</b> ให้เป็น participle clause แบบปฏิเสธ",
+      tiles: [["not knowing anyone at the party","part"],[",","punct"],["I left early","main"],["knowing not anyone at the party","part"],["because of knowing nobody","phrase"]],
+      answers: ["not knowing anyone at the party, I left early"],
+      mistakes: [
+        { has: "knowing not", msg: "รูปปฏิเสธของ participle ให้วาง not ไว้หน้า V-ing เสมอ (not knowing)" },
+        { has: "because of knowing nobody", msg: "ไวยากรณ์พอไปได้ แต่ฟังแข็งและไม่เป็นธรรมชาติ เจ้าของภาษาจะใช้ Not knowing … หรือ Because I didn't know …" }
+      ],
+      explain: "Not + V-ing ใช้แทน Because I didn't … ได้อย่างกระชับ ฟังเป็นภาษาเขียนหรือการเล่าเรื่อง",
+      th: "เพราะไม่รู้จักใครในงานเลย ฉันจึงกลับก่อน" },
+
+    { id: "k7", topic: "Preposition + which", task: "รวมเป็นประโยคเดียว (ทำได้ 2 ทาง)",
+      src: ["This is the house.", "I grew up in it."],
+      target: "ใช้ <b>in which</b> (ทางการ) หรือ <b>where</b>",
+      tiles: [["this is the house","main"],["in which","link"],["where","link"],["I grew up","rel"],["in it","phrase"]],
+      answers: ["this is the house in which I grew up", "this is the house where I grew up"],
+      mistakes: [{ has: "in it", msg: "in which / where ได้แทนคำว่า in it ไปแล้ว ใส่ in it ซ้ำไม่ได้" }],
+      explain: "บุพบท + which เป็นรูปทางการ ส่วน where ใช้กับสถานที่ในการพูดทั่วไป ห้ามใช้ in where",
+      th: "นี่คือบ้านที่ฉันเติบโตมา" },
+
+    { id: "k8", topic: "Noun clause · whether", task: "รวมเป็นประโยคเดียว",
+      src: ["I'm not sure.", "Will he come?"],
+      target: "เปลี่ยนคำถามให้เป็น <b>ส่วนหนึ่งของประโยค</b> (indirect question)",
+      tiles: [["I'm not sure","main"],["whether","link"],["if","link"],["he will come","noun"],["will he come","noun"]],
+      answers: ["I'm not sure whether he will come", "I'm not sure if he will come"],
+      mistakes: [{ has: "will he come", msg: "เมื่อคำถามกลายเป็นส่วนหนึ่งของประโยค ต้องเรียงแบบบอกเล่า (he will come) ไม่สลับกริยาไว้หน้า" }],
+      explain: "whether / if + ประโยคบอกเล่า = 'ว่า…หรือไม่' whether ฟังทางการกว่า และใช้ได้ในบางที่ที่ if ใช้ไม่ได้ เช่น ขึ้นต้นประโยค",
+      th: "ฉันไม่แน่ใจว่าเขาจะมาหรือเปล่า" },
+
+    { id: "k9", topic: "Participle + Relative", task: "รวมสามประโยคเป็นประโยคเดียว",
+      src: ["The woman is standing by the window.", "She is the CEO.", "She founded the company in 2010."],
+      target: "ใช้ <b>participle</b> ขยาย the woman และ <b>relative clause</b> ขยาย the CEO",
+      tiles: [["the woman","main"],["standing by the window","part"],["is the CEO","main"],[",","punct"],["who founded the company in 2010","rel"],["stood by the window","part"],["which founded the company in 2010","rel"]],
+      answers: ["the woman standing by the window is the CEO, who founded the company in 2010"],
+      mistakes: [
+        { has: "stood by", msg: "stood เป็นกริยาอดีต ใช้ขยายคำนามแบบนี้ไม่ได้ ต้องใช้ standing (= who is standing)" },
+        { has: "which founded", msg: "the CEO เป็นคน ต้องใช้ who" }
+      ],
+      explain: "the woman who is standing → the woman standing (ตัด who is ออก) ส่วน who founded … เป็นข้อมูลเสริม จึงคั่นด้วยจุลภาค",
+      th: "ผู้หญิงที่ยืนอยู่ข้างหน้าต่างคือซีอีโอ ซึ่งเป็นผู้ก่อตั้งบริษัทเมื่อปี 2010" },
+
+    { id: "k10", topic: "Relative · whose", task: "รวมเป็นประโยคเดียว",
+      src: ["I met a writer.", "Her books have sold millions."],
+      target: "แสดง <b>ความเป็นเจ้าของ</b> ด้วย relative pronoun",
+      tiles: [["I met a writer","main"],["whose books","rel"],["have sold millions","rel"],["who's books","rel"],["her books","phrase"]],
+      answers: ["I met a writer whose books have sold millions"],
+      mistakes: [
+        { has: "who's", msg: "who's ย่อมาจาก who is ส่วนคำที่บอกความเป็นเจ้าของคือ whose" },
+        { has: "writer her books", msg: "ต้องมีคำเชื่อม ใช้ whose แทน her เพื่อเชื่อมสองประโยคเข้าด้วยกัน" }
+      ],
+      explain: "whose + คำนาม = 'ที่…ของเขา/ของมัน' ใช้ได้ทั้งกับคนและสิ่งของ",
+      th: "ฉันได้พบนักเขียนคนหนึ่งที่หนังสือของเธอขายได้หลายล้านเล่ม" }
+  ]
+};
+
+const REF = {
+  combine: { title: "สรุปคำเชื่อมในหมวดนี้",
+    head: ["คำเชื่อม", "ความหมาย", "ตามด้วย", "ตัวอย่าง"],
+    rows: [
+      ["although / even though", "ถึงแม้ว่า", "ประโยค", "Although it was late, we kept talking."],
+      ["despite / in spite of", "แม้จะมี…", "คำนาม / V-ing", "Despite the noise, she slept well."],
+      ["whereas / while", "ในขณะที่ (เปรียบเทียบ)", "ประโยค", "I'm an early bird, whereas he's a night owl."],
+      ["provided that / as long as", "โดยมีเงื่อนไขว่า", "ประโยค (ปัจจุบันกาล)", "You can go provided that you finish first."],
+      ["unless", "ถ้าไม่ / เว้นแต่", "ประโยคบอกเล่า", "Unless it rains, we'll go."],
+      ["given that", "ในเมื่อ / เมื่อพิจารณาว่า", "ประโยค", "Given that it's Friday, traffic will be bad."],
+      ["so as to / in order to", "เพื่อที่จะ", "V1", "He left early so as to avoid traffic."],
+      ["so that", "เพื่อที่", "ประโยค (+ can/could)", "Speak up so that everyone can hear."],
+      ["not only … but also", "ไม่เพียงแต่…แต่ยัง…", "ชนิดคำเดียวกัน", "She's not only smart but also kind."],
+      ["because / due to", "เพราะ", "ประโยค / คำนาม", "It was cancelled due to the storm."]
+    ] },
+  clause: { title: "สรุปชนิดอนุประโยคในหมวดนี้",
+    head: ["ชนิด", "หน้าที่", "รูป", "ตัวอย่าง"],
+    rows: [
+      ["Defining relative", "ระบุว่าหมายถึงคนไหน/อันไหน", "who / which / that", "The man who called you is here."],
+      ["Non-defining relative", "ข้อมูลเสริม คั่นด้วยจุลภาค", "who / which (ห้าม that)", "Bangkok, which is huge, never sleeps."],
+      ["whose / in which / where", "ความเป็นเจ้าของ / สถานที่", "whose + นาม, prep + which", "The town where I was born is tiny."],
+      ["Noun clause", "ทั้งก้อนทำหน้าที่เป็นคำนาม", "what / whether / that + ประโยค", "What matters is the result."],
+      ["Present participle", "ย่อประโยคเชิงกระทำ", "V-ing / Not V-ing", "Feeling tired, I went to bed."],
+      ["Perfect participle", "เหตุการณ์ที่เสร็จก่อน", "Having + V3", "Having eaten, we left."],
+      ["Reduced relative (passive)", "ย่อ which was + V3", "นาม + V3", "The car parked outside is mine."]
+    ] }
+};
+
+/* ---------- state ---------- */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+let progress = store.get("sl-progress", {});      // id -> "done" | "revealed"
+let mod = store.get("sl-mod", "combine");
+if (!DATA[mod]) mod = "combine";
+let idx = 0;
+let placed = [];        // tile indices in answer order
+let checked = null;     // null | "correct" | "wrong"
+let badFrom = -1;
+let showColors = store.get("sl-colors", true);
+
+const $ = id => document.getElementById(id);
+const ex = () => DATA[mod][idx];
+const norm = s => s.toLowerCase().replace(/\s+,/g, ",").replace(/\s+/g, " ").trim();
+const textOf = arr => arr.map(i => ex().tiles[i][0]).join(" ");
+const display = s => { s = s.replace(/\s+,/g, ","); return s.charAt(0).toUpperCase() + s.slice(1) + "."; };
+
+function isPrefix(answer, built) {
+  const a = norm(answer), b = norm(built);
+  if (!b) return true;
+  if (!a.startsWith(b)) return false;
+  const next = a.charAt(b.length);
+  return next === "" || next === " " || next === ",";
+}
+function matchLen(answer) {
+  let k = 0;
+  for (let n = 1; n <= placed.length; n++) {
+    if (isPrefix(answer, textOf(placed.slice(0, n)))) k = n; else break;
+  }
+  return k;
+}
+function bestAnswer() {
+  let best = ex().answers[0], bk = -1;
+  for (const a of ex().answers) { const k = matchLen(a); if (k > bk) { bk = k; best = a; } }
+  return { answer: best, k: bk };
+}
+function tilesFor(answer) {
+  const out = [];
+  const used = new Set();
+  while (norm(textOf(out)) !== norm(answer)) {
+    const i = ex().tiles.findIndex((t, j) => !used.has(j) && isPrefix(answer, textOf(out.concat(j))));
+    if (i < 0) break;
+    out.push(i); used.add(i);
+  }
+  return out;
+}
+
+/* ---------- rendering ---------- */
+function chip(i, where) {
+  const [text, role] = ex().tiles[i];
+  const b = document.createElement("button");
+  b.className = "chip r-" + role + (role === "punct" ? " punct" : "") + (showColors ? "" : " off");
+  b.textContent = text;
+  b.setAttribute("aria-label", (where === "bank" ? "เพิ่ม: " : "เอาออก: ") + text);
+  if (checked === "correct") b.disabled = true;
+  return b;
+}
+
+function render() {
+  const e = ex();
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", t.dataset.mod === mod));
+
+  // strip
+  const strip = $("strip"); strip.innerHTML = "";
+  const lab = document.createElement("span"); lab.className = "label"; lab.textContent = "ข้อ"; strip.append(lab);
+  DATA[mod].forEach((x, i) => {
+    const d = document.createElement("button");
+    d.className = "dot" + (progress[x.id] ? " " + progress[x.id] : "") + (i === idx ? " current" : "");
+    d.textContent = i + 1;
+    d.setAttribute("aria-label", `ข้อ ${i + 1}: ${x.topic}`);
+    d.onclick = () => go(i);
+    strip.append(d);
+  });
+  const done = DATA[mod].filter(x => progress[x.id] === "done").length;
+  const p = document.createElement("span"); p.className = "progress";
+  p.textContent = `ทำถูกเอง ${done}/${DATA[mod].length} ข้อ`;
+  strip.append(p);
+
+  $("topic").textContent = e.topic;
+  $("task").textContent = e.task;
+  $("sources").innerHTML = "";
+  e.src.forEach((s, i) => { const li = document.createElement("li"); li.dataset.n = i + 1; li.textContent = s; $("sources").append(li); });
+  $("target").innerHTML = "🎯 " + e.target;
+
+  // answer line
+  const ans = $("answer"); ans.innerHTML = "";
+  ans.className = "answer" + (placed.length ? "" : " empty") + (checked === "correct" ? " correct" : checked === "wrong" && badFrom >= 0 ? " wrong" : "");
+  placed.forEach((ti, pos) => {
+    const b = chip(ti, "answer");
+    if (checked === "wrong" && badFrom >= 0 && pos >= badFrom) b.classList.add("bad-tile");
+    b.onclick = () => { placed.splice(pos, 1); clearCheck(); render(); };
+    ans.append(b);
+  });
+
+  // bank
+  const bank = $("bank"); bank.innerHTML = "";
+  const free = e.tiles.map((_, i) => i).filter(i => !placed.includes(i));
+  bank.className = "bank" + (free.length ? "" : " empty");
+  free.forEach(i => {
+    const b = chip(i, "bank");
+    b.onclick = () => { placed.push(i); clearCheck(); render(); };
+    bank.append(b);
+  });
+
+  // legend
+  const lg = $("legend"); lg.innerHTML = "";
+  lg.hidden = !showColors;
+  LEGEND[mod].forEach(r => { const s = document.createElement("span"); s.innerHTML = `<i class="r-${r}"></i>${ROLE[r]}`; lg.append(s); });
+
+  // speak current sentence
+  const sw = $("speakWrap"); sw.innerHTML = "";
+  if ("speechSynthesis" in window && placed.length) {
+    const s = document.createElement("button"); s.className = "speak"; s.textContent = "🔊 ฟังประโยคนี้";
+    s.onclick = () => speak(display(textOf(placed)));
+    sw.append(s);
+  }
+
+  const solved = checked === "correct";
+  $("btnCheck").hidden = solved;
+  $("btnNext").hidden = !solved;
+  $("btnHint").disabled = solved;
+  $("btnReveal").disabled = solved;
+  $("btnClear").disabled = solved || !placed.length;
+  $("btnNext").textContent = idx < DATA[mod].length - 1 ? "ข้อต่อไป →" : (mod === "combine" ? "ไปหมวด 2 →" : "กลับไปข้อ 1");
+
+  renderRef();
+}
+
+function renderRef() {
+  const r = REF[mod];
+  const open = $("ref").open;
+  $("ref").innerHTML = `<summary>📘 ${r.title}</summary><div class="table-wrap"><table><thead><tr>${r.head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${
+    r.rows.map(row => `<tr><td class="en">${row[0]}</td><td>${row[1]}</td><td>${row[2]}</td><td class="ex">${row[3]}</td></tr>`).join("")
+  }</tbody></table></div>`;
+  $("ref").open = open;
+}
+
+function feedback(kind, html) {
+  const f = $("feedback");
+  f.className = "feedback " + kind;
+  f.innerHTML = html;
+  f.hidden = false;
+}
+function clearCheck() { checked = null; badFrom = -1; $("feedback").hidden = true; }
+
+function speak(text) {
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US"; u.rate = 0.9;
+    speechSynthesis.speak(u);
+  } catch {}
+}
+function esc(s) { return s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function showSolved(viaReveal) {
+  const e = ex();
+  checked = "correct";
+  if (viaReveal) { if (progress[e.id] !== "done") progress[e.id] = "revealed"; }
+  else progress[e.id] = "done";
+  store.set("sl-progress", progress);
+
+  const built = textOf(placed);
+  const parts = placed.filter(i => e.tiles[i][1] !== "punct").map(i => {
+    const [t, r] = e.tiles[i];
+    return `<span class="part r-${r}"><small>${ROLE[r]}</small><b>${esc(t)}</b></span>`;
+  }).join("");
+  const others = e.answers.filter(a => norm(a) !== norm(built));
+  const speakBtn = "speechSynthesis" in window ? `<button class="speak" data-say="${esc(display(built))}">🔊 ฟัง</button>` : "";
+  feedback("good", `
+    <h3>${viaReveal ? "เฉลย" : "ถูกต้อง! 🎉"}</h3>
+    <div class="final">${esc(display(built))} ${speakBtn}</div>
+    <p>แปล: ${esc(e.th)}</p>
+    <div class="breakdown">${parts}</div>
+    <p>${esc(e.explain)}</p>
+    ${others.length ? `<p>แบบอื่นที่ถูกเหมือนกัน:</p><ul>${others.map(a => `<li class="alt">${esc(display(a))}</li>`).join("")}</ul>` : ""}
+  `);
+  render();
+}
+
+/* ---------- actions ---------- */
+function check() {
+  const e = ex();
+  if (!placed.length) { feedback("info", "<p>ยังไม่ได้วางบล็อกเลย แตะบล็อกด้านล่างเพื่อเริ่มเรียงประโยค</p>"); return; }
+  const built = norm(textOf(placed));
+  if (e.answers.some(a => norm(a) === built)) { showSolved(false); return; }
+
+  checked = "wrong";
+  const { k } = bestAnswer();
+  badFrom = k;
+  const hits = e.mistakes.filter(m => built.includes(norm(m.has))).map(m => m.msg);
+  let html = "";
+  if (hits.length) {
+    html = `<h3>ยังไม่ถูก</h3><ul>${hits.map(h => `<li>${esc(h)}</li>`).join("")}</ul>`;
+  } else if (k === placed.length) {
+    html = `<h3>มาถูกทางแล้ว</h3><p>ส่วนที่วางไว้ถูกต้อง แต่ประโยคยังไม่ครบ ลองเติมบล็อกที่เหลือ (ระวังตัวหลอก)</p>`;
+    badFrom = -1;
+  } else {
+    html = `<h3>ลำดับยังไม่ถูก</h3><p>${k > 0 ? `${k} บล็อกแรกถูกแล้ว ` : ""}บล็อกที่มีกรอบแดงวางผิดตำแหน่ง ลองดูว่าคำเชื่อมควรอยู่หน้าประโยคไหน และต้องใช้จุลภาคหรือไม่</p>`;
+  }
+  feedback(k === placed.length && !hits.length ? "info" : "bad", html);
+  render();
+}
+
+function hint() {
+  const { answer, k } = bestAnswer();
+  placed = placed.slice(0, Math.max(k, 0));
+  const next = ex().tiles.findIndex((t, j) => !placed.includes(j) && isPrefix(answer, textOf(placed.concat(j))));
+  clearCheck();
+  if (next >= 0) {
+    placed.push(next);
+    const done = norm(textOf(placed)) === norm(answer);
+    if (done) { showSolved(true); return; }
+    feedback("info", `<p>💡 ใส่บล็อกถัดไปให้แล้ว: <b>${esc(ex().tiles[next][0])}</b>${k < 0 ? "" : " (บล็อกที่ผิดถูกย้ายกลับไปแล้ว)"}</p>`);
+  }
+  render();
+}
+
+function reveal() {
+  placed = tilesFor(bestAnswer().answer);
+  showSolved(true);
+}
+
+function go(i) {
+  idx = i; placed = []; clearCheck(); render();
+  window.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+function next() {
+  if (idx < DATA[mod].length - 1) go(idx + 1);
+  else if (mod === "combine") switchMod("clause");
+  else go(0);
+}
+function switchMod(m) { mod = m; store.set("sl-mod", m); idx = 0; placed = []; clearCheck(); render(); }
+
+document.querySelectorAll(".tab").forEach(t => t.onclick = () => switchMod(t.dataset.mod));
+$("btnClear").onclick = () => { placed = []; clearCheck(); render(); };
+$("btnHint").onclick = hint;
+$("btnReveal").onclick = reveal;
+$("btnCheck").onclick = check;
+$("btnNext").onclick = next;
+$("colorToggle").checked = showColors;
+$("colorToggle").onchange = e => { showColors = e.target.checked; store.set("sl-colors", showColors); render(); };
+$("feedback").addEventListener("click", e => { const b = e.target.closest("[data-say]"); if (b) speak(b.dataset.say); });
+
+render();
+</script>
