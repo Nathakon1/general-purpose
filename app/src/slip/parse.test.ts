@@ -95,3 +95,26 @@ describe('parseSlipText', () => {
     expect(d.issues).toContain('อาจไม่ใช่สลิปโอนเงิน');
   });
 });
+
+describe('names', () => {
+  it('puts back the space after a Thai title', () => {
+    const d = parseSlipText('โอนเงินสำเร็จ\nนายสมชายใจดี\nนางสาวมะลิหอมหวาน\nจำนวน 10.00 บาท', null, now);
+    expect(d.sender).toBe('นาย สมชายใจดี');
+    expect(d.receiver).toBe('นางสาว มะลิหอมหวาน');
+  });
+});
+
+import { guessCategoryName } from '../db/repo';
+describe('category guesses', () => {
+  it('guesses common payees', () => {
+    expect(guessCategoryName('ร้านกาแฟบ้านสวน')).toBe('เครื่องดื่ม');
+    expect(guessCategoryName('7-ELEVEN สาขา 1234')).toBe('ช้อปปิ้ง');
+    expect(guessCategoryName('GRAB TAXI')).toBe('เดินทาง');
+    expect(guessCategoryName('การไฟฟ้านครหลวง')).toBe('บิล/ค่าบ้าน');
+  });
+  it('leaves people alone', () => {
+    expect(guessCategoryName('นาย สมชาย ใจดี')).toBeNull();
+    expect(guessCategoryName('MS MALI HOMWAN')).toBeNull();
+    expect(guessCategoryName('MR KAIS TRUEMAN')).toBeNull();
+  });
+});

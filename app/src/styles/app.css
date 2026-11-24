@@ -65,7 +65,7 @@ label.field { display: flex; flex-direction: column; gap: var(--s1); font-size: 
 .err { color: var(--danger); font-size: var(--fs-sm); }
 
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border-radius: var(--r-input); padding: 3px; gap: 3px; }
-.seg button { border: 0; background: transparent; min-height: 38px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--muted); }
+.seg button { white-space: nowrap; font-size: var(--fs-sm); border: 0; background: transparent; min-height: 38px; border-radius: 8px; cursor: pointer; font-weight: 600; color: var(--muted); }
 .seg button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
 
 .cat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: var(--s2); }

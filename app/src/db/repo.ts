@@ -27,6 +27,26 @@ export async function ruleFor(receiver: string): Promise<number | null> {
   return r?.categoryId ?? null;
 }
 
+// Keyword guesses for common Thai payees, used when no saved rule matches.
+const GUESSES: [RegExp, string][] = [
+  [/กาแฟ|คาเฟ่|cafe|coffee|ชานม|ชาไทย|ชาเย็น|\btea\b|café amazon|starbucks|bubble/i, 'เครื่องดื่ม'],
+  [/ร้านอาหาร|ข้าว|ก๋วยเตี๋ยว|อาหาร|หมูกระทะ|ส้มตำ|ไก่|pizza|\bkfc\b|mcdonald|food|restaurant|bistro|grabfood|lineman|foodpanda/i, 'อาหาร'],
+  [/\bgrab\b|\bbolt\b|\bbts\b|\bmrt\b|แท็กซี่|taxi|ปตท|\bptt\b|บางจาก|\bshell\b|\besso\b|caltex|ทางด่วน|easy pass|รถไฟ/i, 'เดินทาง'],
+  [/7-?eleven|เซเว่น|ซีพี ออลล์|cp all|lotus|โลตัส|big ?c|บิ๊กซี|makro|แม็คโคร|shopee|lazada|central|เซ็นทรัล|\btops\b|uniqlo|watsons/i, 'ช้อปปิ้ง'],
+  [/การไฟฟ้า|ประปา|\bais\b|แอดวานซ์|\btrue\b|ทรูมูฟ|dtac|ดีแทค|3bb|ค่าเช่า|นิติบุคคล|ประกัน/i, 'บิล/ค่าบ้าน'],
+  [/โรงพยาบาล|รพ\.|คลินิก|clinic|hospital|ร้านยา|pharmacy|ทันตกรรม/i, 'สุขภาพ'],
+  [/netflix|spotify|youtube|\bmajor\b|เมเจอร์|sf ?cinema|steam|playstation|disney/i, 'บันเทิง'],
+];
+
+export const guessCategoryName = (payee: string) => GUESSES.find(([re]) => re.test(payee))?.[1] ?? null;
+
+export async function guessCategory(payee: string): Promise<number | null> {
+  const name = guessCategoryName(payee);
+  if (!name) return null;
+  const c = (await categories()).find((x) => x.name === name && x.type === 'expense');
+  return c?.id ?? null;
+}
+
 export async function saveRule(receiver: string, categoryId: number) {
   const match = normName(receiver);
   if (!match) return;

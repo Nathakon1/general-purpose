@@ -1,6 +1,6 @@
 // file -> hash -> dedupe -> QR -> OCR -> parse -> draft for the review screen.
 import { db } from '../db/db';
-import { classify, fallbackCategoryId, getSetting, ruleFor } from '../db/repo';
+import { classify, fallbackCategoryId, getSetting, guessCategory, ruleFor } from '../db/repo';
 import { toLocalIso } from '../lib/format';
 import { parseSlipText, type SlipDraft } from './parse';
 
@@ -70,7 +70,8 @@ export async function processItem(item: ImportItem, seenRefs: Set<string>): Prom
     const myName = await getSetting('myName', '');
     const type = classify(draft.sender ?? '', draft.receiver ?? '', myName);
     const ruled = await ruleFor(type === 'income' ? draft.sender ?? '' : draft.receiver ?? '');
-    const categoryId = ruled ?? (await fallbackCategoryId(type === 'income' ? 'income' : 'expense'));
+    const guessed = type === 'expense' ? await guessCategory(draft.receiver ?? '') : null;
+    const categoryId = ruled ?? guessed ?? (await fallbackCategoryId(type === 'income' ? 'income' : 'expense'));
 
     return {
       ...item,

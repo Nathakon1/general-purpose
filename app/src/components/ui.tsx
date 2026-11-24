@@ -7,7 +7,7 @@ export function TopBar({ title, onBack, right }: { title: string; onBack?: boole
   return (
     <header className="topbar">
       {onBack && (
-        <button className="back" aria-label="กลับ" onClick={() => (typeof onBack === 'function' ? onBack() : back())}>←</button>
+        <button type="button" className="back" aria-label="กลับ" onClick={() => (typeof onBack === 'function' ? onBack() : back())}>←</button>
       )}
       <h1>{title}</h1>
       {right}
@@ -95,8 +95,8 @@ export function Confirm({ open, title, body, confirmLabel, danger, onConfirm, on
         <h2 id="dlg-title" style={{ fontSize: 'var(--fs-lg)' }}>{title}</h2>
         {body && <div className="muted">{body}</div>}
         <div className="row" style={{ justifyContent: 'flex-end' }}>
-          <button className="btn btn-secondary" onClick={onClose}>ยกเลิก</button>
-          <button className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} onClick={() => { onConfirm(); onClose(); }}>{confirmLabel}</button>
+          <button type="button" className="btn btn-secondary" onClick={onClose}>ยกเลิก</button>
+          <button type="button" className={`btn ${danger ? 'btn-danger' : 'btn-primary'}`} onClick={() => { onConfirm(); onClose(); }}>{confirmLabel}</button>
         </div>
       </div>
     </dialog>

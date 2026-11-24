@@ -10,7 +10,8 @@ import { back, go } from '../router';
 /** S06 add by hand, and S05 view / edit / delete when an id is given. */
 export function TxForm({ id }: { id?: number }) {
   const cats = useLiveQuery(categories, []) ?? [];
-  const existing = useLiveQuery(() => (id ? db.transactions.get(id) : undefined), [id]);
+  const found = useLiveQuery(async () => (id ? (await db.transactions.get(id)) ?? null : null), [id], 'loading' as const);
+  const existing = found === 'loading' ? undefined : found;
   const slip = useLiveQuery(async () => (existing?.slipImageId ? db.slipImages.get(existing.slipImageId) : undefined), [existing?.slipImageId]);
   const [slipUrl, setSlipUrl] = useState<string>();
 
@@ -54,7 +55,7 @@ export function TxForm({ id }: { id?: number }) {
     }
   }, [type, cats, categoryId]);
 
-  if (id && existing === null) return <><TopBar title="ไม่พบรายการ" onBack /><p className="muted">รายการนี้อาจถูกลบไปแล้ว</p></>;
+  if (id && found === null) return <><TopBar title="ไม่พบรายการ" onBack /><p className="muted">รายการนี้อาจถูกลบไปแล้ว</p></>;
   if (id && !loaded) return <TopBar title="รายการ" onBack />;
 
   const satang = parseBaht(amount);
@@ -134,7 +135,7 @@ export function TxForm({ id }: { id?: number }) {
       )}
 
       <button className="btn btn-primary btn-block" type="submit">บันทึก</button>
-      {existing?.id && (
+      {!!existing?.id && (
         <>
           <button type="button" className="btn btn-danger btn-block" onClick={() => setAskDelete(true)}>ลบรายการ</button>
           <Confirm open={askDelete} title="ลบรายการนี้?" body="ลบแล้วกู้คืนไม่ได้ รูปสลิปจะถูกลบด้วย" confirmLabel="ลบ" danger

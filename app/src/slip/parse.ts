@@ -66,6 +66,8 @@ function cleanName(s: string): string {
     .replace(FROM_KEYS, '')
     .replace(/^[\s:：\-]+/, '')
     .replace(/\s{2,}/g, ' ')
+    // OCR drops the space after a Thai title; put it back ("นางสาวมะลิ" -> "นางสาว มะลิ").
+    .replace(/^(นางสาว|น\.ส\.|นาง(?!สาว)|นาย|ด\.ช\.|ด\.ญ\.|บจก\.|หจก\.)(?=\S)/, '$1 ')
     .trim();
 }
 
